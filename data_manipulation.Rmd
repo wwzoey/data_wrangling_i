@@ -6,6 +6,117 @@ output: github_document
 This section is to clean and organize data!
 
 ```{r}
+library(tidyverse)
+options(tibble.print_min = 3)
+litters_data = read_csv("./data/FAS_litters.csv", col_types = "ccddiiii")
+litters_data = janitor::clean_names(litters_data)
 
+pups_data = read_csv("./data/FAS_pups.csv",
+  col_types = "ciiiii")
+pups_data = janitor::clean_names(pups_data)
+```
+
+Select.
+
+```{r}
+select(litters_data, group, litter_number, gd0_weight, pups_born_alive)
+select(litters_data, group:gd_of_birth)
+select(litters_data, -pups_survive)
+```
+
+Renaming
+
+```{r}
+select(litters_data, GROUP = group, LiTtEr_NuMbEr = litter_number)
+rename(litters_data, GROUP = group, LiTtEr_NuMbEr = litter_number)
+```
+
+```{r}
+select(litters_data, starts_with("gd"))
+```
+
+```{r}
+select(litters_data, litter_number, pups_survive, everything())
+```
+
+```{r}
+relocate(litters_data, litter_number, pups_survive)
+```
+
+Pups data.
+
+```{r}
+select(pups_data,litter_number, sex, pd_ears)
+```
+
+Filter
+
+```{r}
+filter(litters_data,gd_of_birth == 20)
+filter(litters_data, pups_born_alive >= 2)
+filter(litters_data, pups_survive != 4)
+filter(litters_data, !(pups_survive == 4))
+filter(litters_data,group %in% c("Con7", "Con8"))
+filter(litters_data, group == "Con7" & gd_of_birth == 20)
+```
+
+Filter Pups data.
+
+```{r}
+filter(pups_data, sex == 1)
+filter(pups_data, pd_walk < 11 & sex == 2)
+drop_na(litters_data, gd_of_birth)
+```
+
+Mutate.
+
+```{r}
+mutate(litters_data,
+  wt_gain = gd18_weight - gd0_weight,
+  group = str_to_lower(group)
+)
+```
+
+Mutate Pups data.
+
+```{r}
+mutate(pups_data, substraction = pd_pivot - 7, sum = pd_ears + pd_eyes + pd_pivot + pd_walk)
+```
+
+Arrange.
+
+```{r}
+head(arrange(litters_data, group, pups_born_alive), 10)
+```
+
+%>%
+
+```{r}
+litters_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group =  str_to_lower(group)) %>% 
+  drop_na(wt_gain)
+litters_data
+```
+
+```{r}
+litters_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names(dat = .) %>%
+  select(.data = ., -pups_survive) %>%
+  mutate(.data = .,
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)) %>% 
+  drop_na(data = ., wt_gain)
+```
+
+```{r}
+litters_data %>%
+  lm(wt_gain ~ pups_born_alive, data = .) %>%
+  broom::tidy()
 ```
 
